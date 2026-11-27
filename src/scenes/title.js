@@ -11,8 +11,8 @@ class Title {
     this.btns = [];
   }
   enter(game) {
-    this.saved = game.save.load();
-    this.hasProgress = !!(this.saved && this.saved.step > 0 && !this.saved.done);
+    this.hasProgress = !!game.state.story.started;
+    this.savedStep = game.state.story.currentStep || 0;
     game.audio.bgm(0.5);
     game.audio.rain(0.4);
   }
@@ -37,12 +37,10 @@ class Title {
     assets.drawCover(ctx, 'bg_title', 0, 0, W, H, C.deep, '旧物低语者');
     ctx.fillStyle = 'rgba(30,20,12,0.4)';
     ctx.fillRect(0, 0, W, H);
-    // 暗角
     const vg = ctx.createRadialGradient(W / 2, H * 0.4, H * 0.25, W / 2, H * 0.4, H * 0.85);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.5)');
     ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
-    // 标题（金色渐变）
     const ty = H * 0.24;
     const tg = ctx.createLinearGradient(0, ty - 50, 0, ty + 40);
     tg.addColorStop(0, '#fff3d0'); tg.addColorStop(0.5, '#f2c66d'); tg.addColorStop(1, '#d99a3f');
@@ -53,7 +51,6 @@ class Title {
     ctx.fillStyle = tg;
     ctx.fillText('旧物低语者', W / 2, ty);
     ctx.restore();
-    // 装饰线 + 菱形
     ctx.strokeStyle = 'rgba(242,198,109,0.8)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(W / 2 - 240, ty + 58); ctx.lineTo(W / 2 - 30, ty + 58); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(W / 2 + 30, ty + 58); ctx.lineTo(W / 2 + 240, ty + 58); ctx.stroke();
@@ -66,15 +63,14 @@ class Title {
     const bw = 420, bh = 92, bx = (W - bw) / 2;
     let by = H * 0.56;
     if (this.hasProgress) {
-      this.mkBtn(ctx, '继续昨夜', bx, by, bw, bh, C.amber, () => this.game.startChapter(this.saved.step));
+      this.mkBtn(ctx, '继续昨夜', bx, by, bw, bh, C.amber, () => this.game.startChapter(this.savedStep));
       by += bh + 34;
     }
     this.mkBtn(ctx, this.hasProgress ? '重新开始' : '推开那扇门', bx, by, bw, bh, C.teal, () => {
-      this.game.save.save({ step: 0 });
+      this.game.resetProgress();
       this.game.startChapter(0);
     });
 
-    // 右上角：声音开关
     const sx = W - 80, sy = 80, sm = this.game.audio.muted;
     ctx.beginPath(); ctx.arc(sx, sy, 36, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(30,20,12,0.45)'; ctx.fill();
