@@ -46,6 +46,10 @@ class Shop {
 
   render(ctx, W, H) {
     const s = this.state;
+    // 短屏设备按纵向等比压缩布局，避免底部经营按钮被裁切
+    this.sy = Math.min(1, Math.max(0.72, (H - 150) / 1354));
+    ctx.save();
+    ctx.scale(1, this.sy);
     assets.drawCover(ctx, 'bg_shop', 0, 0, W, H, C.deep, '我的修理铺');
     ctx.fillStyle = 'rgba(25,16,10,0.38)';
     ctx.fillRect(0, 0, W, H);
@@ -135,20 +139,21 @@ class Shop {
     text(ctx, '门外似乎又传来了风铃声……', W / 2, 1245, 28, C.cream, 'center', true);
     text(ctx, '下一位客人，正在路上。', W / 2, 1295, 24, 'rgba(255,248,236,0.78)', 'center');
 
-    this.mkButton(ctx, 170, H - 112, W - 340, 76, '返回标题', C.deep, () => {
+    this.mkButton(ctx, 170, H / this.sy - 112, W - 340, 76, '返回标题', C.deep, () => {
       this.game.setScene(() => new (require('./title.js'))(this.game));
     }, true);
 
     if (this.noticeT > 0) {
-      panel(ctx, 100, H - 205, W - 200, 64, 16, 'rgba(246,234,214,0.96)', C.gold);
-      text(ctx, this.notice, W / 2, H - 173, 25, C.deep, 'center', true);
+      panel(ctx, 100, H / this.sy - 205, W - 200, 64, 16, 'rgba(246,234,214,0.96)', C.gold);
+      text(ctx, this.notice, W / 2, H / this.sy - 173, 25, C.deep, 'center', true);
     }
+    ctx.restore();
   }
 
   mkButton(ctx, x, y, w, h, label, color, action, enabled) {
     panel(ctx, x, y, w, h, h / 2, color, 'rgba(255,248,236,0.7)');
     text(ctx, label, x + w / 2, y + h / 2, 25, C.cream, 'center', true);
-    if (enabled) this.buttons.push({ x, y, w, h, action });
+    if (enabled) this.buttons.push({ x, y: y * this.sy, w, h: h * this.sy, action });
   }
 }
 
