@@ -34,7 +34,11 @@ class Dialogue {
     if (n.ch) {
       for (const b of this.btns) {
         if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
-          if (b.set) for (const k in b.set) this.game.flags[k] = (this.game.flags[k] || 0) + b.set[k];
+          if (b.set) {
+            for (const k in b.set) this.game.flags[k] = (this.game.flags[k] || 0) + b.set[k];
+            // 玩家选择立即落盘，避免中途退出丢失分支记录
+            this.game.persist();
+          }
           this.jump(b.go);
           return;
         }
