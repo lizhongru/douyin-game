@@ -24,8 +24,8 @@ function drawCover(ctx, name, x, y, w, h, fallbackColor, label) {
   if (e.loaded && e.img.width > 0) {
     const ir = e.img.width / e.img.height, br = w / h;
     let sx = 0, sy = 0, sw = e.img.width, sh = e.img.height;
-    if (ir > br) { sw = h * ir; sx = (e.img.width - sw) / 2; }
-    else { sh = w / ir; sy = (e.img.height - sh) / 2; }
+    if (ir > br) { sw = e.img.height * br; sx = (e.img.width - sw) / 2; }
+    else { sh = e.img.width / br; sy = (e.img.height - sh) / 2; }
     ctx.drawImage(e.img, sx, sy, sw, sh, x, y, w, h);
   } else {
     ctx.fillStyle = fallbackColor || C.deep;

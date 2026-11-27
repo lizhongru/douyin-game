@@ -28,16 +28,18 @@ class Puzzle {
   onMove(x, y) {
     if (this.drag < 0) return;
     const w = this.wheels[this.drag];
+    const v0 = w.v;
     w.off += (this.lastY - y);
     this.lastY = y;
     while (w.off >= DH) { w.off -= DH; w.v = (w.v + 9) % 10; }
     while (w.off <= -DH) { w.off += DH; w.v = (w.v + 1) % 10; }
+    if (w.v !== v0) this.game.audio.sfx('tick', 0.5);
   }
   onEnd() {
     if (this.drag >= 0) {
       const w = this.wheels[this.drag];
       w.off = clamp(w.off, -DH, DH);
-      if (Math.abs(w.off) > DH * 0.5) { w.v = (w.v + (w.off > 0 ? 9 : 1)) % 10; }
+      if (Math.abs(w.off) > DH * 0.5) { w.v = (w.v + (w.off > 0 ? 9 : 1)) % 10; this.game.audio.sfx('tick', 0.5); }
       w.off = 0;
       this.drag = -1;
     }
@@ -48,9 +50,12 @@ class Puzzle {
       this.finishing = 1.8;
       this.parts.burst(this.W / 2, this.cy, 30, C.gold, { life: 1.1, speed: 240, size: 9 });
       this.msg = '咔哒。暗格弹开了。';
+      this.game.audio.sfx('click');
+      this.game.audio.sfx('chime', 0.7);
     } else {
       this.shake = 0.4;
       this.msg = '滚轮纹丝不动……再想想盒底的刻字。';
+      this.game.audio.sfx('wrong', 0.7);
     }
     this.msgT = 3;
   }

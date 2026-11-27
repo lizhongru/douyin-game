@@ -17,12 +17,14 @@ class Reveal {
     this.W = game.W; this.H = game.H;
     this.cardX = (this.W - CARD) / 2;
     this.cardY = 150;
+    game.audio.sfx('jingle');
   }
   sx() { return this.cardX + CARD * this.slider; }
   onStart(x, y) {
     if (Math.abs(x - this.sx()) < 60 && y > this.cardY && y < this.cardY + CARD) { this.dragging = true; return; }
     if (this.btn && x >= this.btn.x && x <= this.btn.x + this.btn.w && y >= this.btn.y && y <= this.btn.y + this.btn.h) {
       this.parts.burst(x, y, 12, C.gold, { life: 0.7 });
+      this.game.audio.sfx('tap', 0.6);
       this.doneCb();
     }
   }

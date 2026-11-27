@@ -1,6 +1,7 @@
 // 引擎核心：画布、主循环、输入分发、场景切换（带黑场过渡）
 const cfg = require('./config.js');
 const save = require('./save.js');
+const audio = require('./audio.js');
 const Title = require('./scenes/title.js');
 const Flow = require('./scenes/flow.js');
 
@@ -16,7 +17,7 @@ const W = cfg.DESIGN_W;
 const H = canvas.height / SCALE;
 
 const game = {
-  W, H, ctx, canvas, info, save,
+  W, H, ctx, canvas, info, save, audio,
   flags: {},
   scene: null,
   setScene(makeFn) { pending = makeFn; fadeDir = 1; fadeT = 0; },
@@ -38,6 +39,7 @@ let last = 0;
 function frame(ts) {
   const dt = Math.min(0.05, (ts - last) / 1000 || 0.016);
   last = ts;
+  audio.update(dt);
 
   if (fadeDir === 1) {
     fadeT += dt * 3.2;
@@ -69,7 +71,8 @@ function dispatch(name, e) {
   try { fn.call(cur, p.x, p.y); } catch (err) { console.error('[input]', err); }
 }
 
-tt.onTouchStart(e => dispatch('onStart', e));
+tt.onTouchStart(e => { audio.unlock(); dispatch('onStart', e); });
+if (tt.onHide) tt.onHide(() => audio.pauseAll());
 tt.onTouchMove(e => dispatch('onMove', e));
 tt.onTouchEnd(e => dispatch('onEnd', e));
 

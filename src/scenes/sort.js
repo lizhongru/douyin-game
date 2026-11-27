@@ -52,9 +52,16 @@ class Sort {
     if (slot && slot.id === d.id) {
       d.x = slot.x; d.y = slot.y; d.placed = true;
       this.parts.burst(slot.x, slot.y, 14, C.gold, { life: 0.7, speed: 160, size: 7 });
-      if (this.items.every(it => it.placed)) this.finishing = 1.4;
+      if (this.items.every(it => it.placed)) {
+        this.finishing = 1.4;
+        this.game.audio.sfx('click');
+        this.game.audio.sfx('chime', 0.6);
+      } else {
+        this.game.audio.sfx('snap');
+      }
     } else if (slot && slot.id !== d.id) {
       this.shake = 0.35;
+      this.game.audio.sfx('wrong', 0.7);
       d.placed = false; // 回弹到原位
       const i = this.items.indexOf(d);
       d.x = 130 + i * 160;

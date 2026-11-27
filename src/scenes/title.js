@@ -13,6 +13,8 @@ class Title {
   enter(game) {
     this.saved = game.save.load();
     this.hasProgress = !!(this.saved && this.saved.step > 0 && !this.saved.done);
+    game.audio.bgm(0.5);
+    game.audio.rain(0.4);
   }
   update(dt) {
     this.t += dt;
@@ -25,6 +27,7 @@ class Title {
     for (const b of this.btns) {
       if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
         this.parts.burst(x, y, 10, C.gold, { life: 0.6 });
+        this.game.audio.sfx('tap', 0.6);
         b.fn();
         return;
       }
@@ -70,6 +73,15 @@ class Title {
       this.game.save.save({ step: 0 });
       this.game.startChapter(0);
     });
+
+    // 右上角：声音开关
+    const sx = W - 80, sy = 80, sm = this.game.audio.muted;
+    ctx.beginPath(); ctx.arc(sx, sy, 36, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(30,20,12,0.45)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,248,236,0.6)'; ctx.lineWidth = 3; ctx.stroke();
+    text(ctx, '♪', sx, sy + 2, 38, sm ? 'rgba(255,248,236,0.45)' : C.gold, 'center', true);
+    if (sm) { ctx.strokeStyle = C.rose; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(sx - 24, sy + 24); ctx.lineTo(sx + 24, sy - 24); ctx.stroke(); }
+    this.btns.push({ x: sx - 44, y: sy - 44, w: 88, h: 88, fn: () => this.game.audio.setMuted(!this.game.audio.muted) });
 
     this.parts.render(ctx);
     text(ctx, '修复旧物 · 倾听秘密', W / 2, H - 70, 26, 'rgba(246,234,214,0.6)', 'center');

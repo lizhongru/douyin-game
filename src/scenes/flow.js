@@ -21,12 +21,13 @@ class Flow {
     this.steps = chapter.steps;
     this.i = Math.max(0, Math.min(startStep || 0, this.steps.length - 1));
   }
-  enter() { this.load(); }
+  enter() { this.game.audio.bgm(0.3); this.load(); }
   load() {
     const s = this.steps[this.i];
     const done = () => this.next();
     const mk = MAKERS[s.t];
     if (!mk) { this.next(); return; }
+    if (s.t !== 'dlg') this.game.audio.rain(0.15); // 对话场景由节点自己控制环境声
     this.cur = mk(this.game, s, done);
     if (this.cur.enter) this.cur.enter(this.game);
   }

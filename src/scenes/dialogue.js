@@ -4,6 +4,8 @@ const { panel, text, wrapText, cut, rr } = require('../utils.js');
 const assets = require('../assets.js');
 
 const TYPE_SPEED = 42; // 字/秒
+// 各背景的雨声大小：室内远、门口近；节点可用 rain 字段覆盖
+const RAIN = { shelf: 0.18, letter: 0.15, rain: 0.5, work: 0.15, shop: 0.1 };
 
 class Dialogue {
   constructor(game, nodes, done) {
@@ -15,7 +17,12 @@ class Dialogue {
     this.t = 0;
     this.btns = [];
   }
-  enter() { this.cur = this.nodes[0]; this.charN = 0; }
+  enter() { this.cur = this.nodes[0]; this.charN = 0; this.ambience(this.cur); }
+  ambience(n) {
+    const au = this.game.audio;
+    au.rain(n.rain !== undefined ? n.rain : (RAIN[n.bg || 'shop'] !== undefined ? RAIN[n.bg || 'shop'] : 0.15));
+    if (n.sfx) au.sfx(n.sfx);
+  }
   typing() { return this.charN < this.cur.tx.length; }
   update(dt) {
     this.t += dt;
@@ -37,11 +44,13 @@ class Dialogue {
     this.jump(n.go !== undefined ? n.go : this.i + 1);
   }
   jump(idx) {
+    this.game.audio.sfx('tap', 0.45);
     if (idx >= this.nodes.length) { this.done(); return; }
     this.i = idx;
     this.cur = this.nodes[idx];
     this.charN = 0;
     this.btns = [];
+    this.ambience(this.cur);
   }
   render(ctx, W, H) {
     const n = this.cur;

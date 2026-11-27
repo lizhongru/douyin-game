@@ -45,6 +45,7 @@ class Wipe {
   erase(x, y) {
     const lx = x - this.cardX, ly = y - this.cardY;
     if (lx < -BRUSH || ly < -BRUSH || lx > CARD + BRUSH || ly > CARD + BRUSH) return;
+    this.game.audio.scrub();
     const o = this.octx;
     o.globalCompositeOperation = 'destination-out';
     o.beginPath(); o.arc(lx, ly, BRUSH, 0, Math.PI * 2); o.fill();
@@ -84,6 +85,7 @@ class Wipe {
     if (this.midHintT > 0) this.midHintT -= dt;
     if (!this.finishing && this.progress >= GOAL) {
       this.finishing = 1.6;
+      this.game.audio.sfx('chime', 0.8);
       this.parts.burst(this.cardX + CARD / 2, this.cardY + CARD / 2, 26, C.gold, { life: 1, speed: 220, size: 9 });
     }
     if (this.finishing > 0) {
