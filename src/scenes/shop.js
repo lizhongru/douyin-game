@@ -50,9 +50,9 @@ class Shop {
     this.sy = Math.min(1, Math.max(0.72, (H - 150) / 1354));
     ctx.save();
     ctx.scale(1, this.sy);
-    assets.drawCover(ctx, 'bg_shop', 0, 0, W, H, C.deep, '我的修理铺');
+    assets.drawCover(ctx, 'bg_shop', 0, 0, W, H / this.sy, C.deep, '我的修理铺');
     ctx.fillStyle = 'rgba(25,16,10,0.38)';
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, 0, W, H / this.sy);
 
     text(ctx, '我的修理铺', W / 2, 72, 48, C.cream, 'center', true);
     text(ctx, '一点一点，把这里变成真正的家', W / 2, 120, 25, 'rgba(255,248,236,0.82)', 'center');
