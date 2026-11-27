@@ -1,6 +1,7 @@
 // 引擎核心：画布、主循环、输入分发、场景切换（带黑场过渡）
 const cfg = require('./config.js');
 const save = require('./save.js');
+const stateModel = require('./state.js');
 const audio = require('./audio.js');
 const Title = require('./scenes/title.js');
 const Flow = require('./scenes/flow.js');
@@ -11,22 +12,38 @@ canvas.width = Math.round(info.windowWidth * info.pixelRatio);
 canvas.height = Math.round(info.windowHeight * info.pixelRatio);
 const ctx = canvas.getContext('2d');
 
-const SCALE = canvas.width / cfg.DESIGN_W;      // 渲染缩放（设计px -> 物理px）
-const IN_SCALE = cfg.DESIGN_W / info.windowWidth; // 触摸坐标 -> 设计px
+const SCALE = canvas.width / cfg.DESIGN_W;
+const IN_SCALE = cfg.DESIGN_W / info.windowWidth;
 const W = cfg.DESIGN_W;
 const H = canvas.height / SCALE;
 
 const game = {
   W, H, ctx, canvas, info, save, audio,
-  flags: {},
+  state: stateModel.create(save.load()),
+  flags: null,
   scene: null,
+  persist() { save.save(this.state); },
+  resetProgress() {
+    this.state = stateModel.create(null);
+    this.flags = this.state.story.flags;
+    this.persist();
+  },
   setScene(makeFn) { pending = makeFn; fadeDir = 1; fadeT = 0; },
-  startChapter(startStep) { this.setScene(() => new Flow(game, startStep || 0)); }
+  startChapter(startStep) {
+    const step = Math.max(0, Number(startStep) || 0);
+    this.state.story.currentChapter = 1;
+    this.state.story.currentStep = step;
+    this.state.story.started = true;
+    this.flags = this.state.story.flags;
+    this.persist();
+    this.setScene(() => new Flow(game, step));
+  }
 };
+game.flags = game.state.story.flags;
 
 let cur = null;
 let pending = null;
-let fadeT = 0, fadeDir = 0; // fadeDir: 1=渐出换场, -1=渐入
+let fadeT = 0, fadeDir = 0;
 
 function applyScene() {
   cur = pending ? pending() : null;
@@ -72,15 +89,14 @@ function dispatch(name, e) {
 }
 
 tt.onTouchStart(e => { audio.unlock(); dispatch('onStart', e); });
-if (tt.onHide) tt.onHide(() => audio.pauseAll());
+if (tt.onHide) tt.onHide(() => { audio.pauseAll(); game.persist(); });
+if (tt.onShow) tt.onShow(() => { if (cur && cur.enterAudio) cur.enterAudio(); });
 tt.onTouchMove(e => dispatch('onMove', e));
 tt.onTouchEnd(e => dispatch('onEnd', e));
 
-// 启动
 cur = new Title(game);
 game.scene = cur;
 cur.enter(game);
 requestAnimationFrame(frame);
 
-// 调试/自动化挂载点
 if (typeof globalThis !== 'undefined') globalThis.__whisper_game = game;
