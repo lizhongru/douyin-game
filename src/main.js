@@ -90,7 +90,6 @@ function dispatch(name, e) {
 
 tt.onTouchStart(e => { audio.unlock(); dispatch('onStart', e); });
 if (tt.onHide) tt.onHide(() => { audio.pauseAll(); game.persist(); });
-if (tt.onShow) tt.onShow(() => { if (cur && cur.enterAudio) cur.enterAudio(); });
 tt.onTouchMove(e => dispatch('onMove', e));
 tt.onTouchEnd(e => dispatch('onEnd', e));
 
