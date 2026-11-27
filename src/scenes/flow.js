@@ -1,11 +1,12 @@
-// 章节流程编排：把 对话/擦拭/归位/密码锁/对比 串成一条可存档的关卡流
+// 章节流程编排：对话/擦拭/归位/密码锁/记忆揭示
 const chapter = require('../story/chapter1.js');
 const Dialogue = require('./dialogue.js');
 const Wipe = require('./wipe.js');
 const Sort = require('./sort.js');
 const Puzzle = require('./puzzle.js');
 const Reveal = require('./reveal.js');
-const Title = require('./title.js');
+const Shop = require('./shop.js');
+const economy = require('../economy.js');
 
 const MAKERS = {
   dlg: (game, cfg, done) => new Dialogue(game, cfg.nodes, done),
@@ -21,25 +22,41 @@ class Flow {
     this.steps = chapter.steps;
     this.i = Math.max(0, Math.min(startStep || 0, this.steps.length - 1));
   }
-  enter() { this.game.audio.bgm(0.3); this.load(); }
+  enter() {
+    this.game.audio.bgm(0.3);
+    this.game.state.story.started = true;
+    this.saveProgress();
+    this.load();
+  }
+  saveProgress() {
+    this.game.state.story.currentChapter = 1;
+    this.game.state.story.currentStep = this.i;
+    this.game.state.story.started = true;
+    this.game.persist();
+  }
   load() {
     const s = this.steps[this.i];
+    if (!s) { this.finish(); return; }
     const done = () => this.next();
     const mk = MAKERS[s.t];
     if (!mk) { this.next(); return; }
-    if (s.t !== 'dlg') this.game.audio.rain(0.15); // 对话场景由节点自己控制环境声
+    if (s.t !== 'dlg') this.game.audio.rain(0.15);
     this.cur = mk(this.game, s, done);
     if (this.cur.enter) this.cur.enter(this.game);
   }
   next() {
     this.i++;
-    if (this.i >= this.steps.length) {
-      this.game.save.save({ step: 0, done: true });
-      this.game.setScene(() => new Title(this.game));
-      return;
-    }
-    this.game.save.save({ step: this.i });
+    if (this.i >= this.steps.length) { this.finish(); return; }
+    this.saveProgress();
     this.load();
+  }
+  finish() {
+    economy.completeFirstChapter(this.game.state);
+    this.game.state.story.currentStep = 0;
+    this.game.state.story.started = false;
+    this.game.flags = this.game.state.story.flags;
+    this.game.persist();
+    this.game.setScene(() => new Shop(this.game));
   }
   update(dt) { if (this.cur && this.cur.update) this.cur.update(dt); }
   render(ctx, W, H) { if (this.cur && this.cur.render) this.cur.render(ctx, W, H); }
