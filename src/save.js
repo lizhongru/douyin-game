@@ -1,4 +1,4 @@
-// 本地存档：章节进度与选择倾向
+// 本地存档：完整玩家状态；state.js 负责旧版本迁移与数据校验
 const KEY = 'whisper_save_v1';
 
 function load() {
@@ -6,7 +6,7 @@ function load() {
 }
 
 function save(data) {
-  try { tt.setStorageSync(KEY, data); } catch (e) { /* 忽略 */ }
+  try { tt.setStorageSync(KEY, data); return true; } catch (e) { return false; }
 }
 
 function clear() {
